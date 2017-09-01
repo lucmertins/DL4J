@@ -9,11 +9,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import org.apache.commons.io.FilenameUtils;
 import org.datavec.image.transform.FlipImageTransform;
 import org.datavec.image.transform.ImageTransform;
 import org.datavec.image.transform.WarpImageTransform;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
+import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -26,7 +28,9 @@ import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
@@ -78,6 +82,7 @@ public class CnnRPMongo {
         List<ImageTransform> transforms = Arrays.asList(new ImageTransform[]{flipTransform1, warpTransform, flipTransform2});
 
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+
         log.info("Build model....");
         MultiLayerNetwork network;
 
@@ -86,15 +91,6 @@ public class CnnRPMongo {
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));
 
-        /**
-         * Data Setup -> define how to load data into net: - recordReader = the
-         * reader that loads and converts image data pass in inputSplit to
-         * initialize - dataIter = a generator that only loads one batch at a
-         * time into memory to save memory - trainIter = uses
-         * MultipleEpochsIterator to ensure model runs through the data for all
-         * epochs
-         *
-         */
         MongoPathLabelGenerator labelMaker = new MongoPathLabelGenerator();
 
         MongoImageRecordReader recordReader = new MongoImageRecordReader(height, width, channels, labelMaker);
@@ -110,6 +106,42 @@ public class CnnRPMongo {
         dataIter.setPreProcessor(scaler);
         trainIter = new MultipleEpochsIterator(numEpochs, dataIter);
         network.fit(trainIter);
+
+        // Train with transformations
+        for (ImageTransform transform : transforms) {
+            System.out.print("\nTraining on transformation: " + transform.getClass().toString() + "\n\n");
+            recordReader.initialize(train, transform);
+            dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+            scaler.fit(dataIter);
+            dataIter.setPreProcessor(scaler);
+            trainIter = new MultipleEpochsIterator(numEpochs, dataIter);
+            network.fit(trainIter);
+        }
+
+        log.info("Evaluate model....");
+        recordReader.initialize(test);
+        dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+        scaler.fit(dataIter);
+        dataIter.setPreProcessor(scaler);
+        Evaluation eval = network.evaluate(dataIter);
+        log.info(eval.stats(true));
+
+        // Example on how to get predict results with trained model. Result for first example in minibatch is printed
+        dataIter.reset();
+        DataSet testDataSet = dataIter.next();
+        List<String> allClassLabels = recordReader.getLabels();
+        int labelIndex = testDataSet.getLabels().argMax(1).getInt(0);
+        int[] predictedClasses = network.predict(testDataSet.getFeatures());
+        String expectedResult = allClassLabels.get(labelIndex);
+        String modelPrediction = allClassLabels.get(predictedClasses[0]);
+        System.out.print("\nFor a single example that is labeled " + expectedResult + " the model predicted " + modelPrediction + "\n\n");
+
+        log.info("Save model....");
+        String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
+        ModelSerializer.writeModel(network, basePath + "model.bin", true);
+
+        log.info("****************Example finished********************");
+
     }
 
     private ConvolutionLayer convInit(String name, int in, int out, int[] kernel, int[] stride, int[] pad, double bias) {

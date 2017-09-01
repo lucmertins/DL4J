@@ -75,7 +75,7 @@ public class MongoImageRecordReader extends BaseRecordReader {
     }
 
     @Override
-    public void initialize(InputSplit split) throws IOException, InterruptedException {
+    public void initialize(InputSplit split) throws IOException {
         if (imageLoader == null) {
             imageLoader = new NativeImageLoader(height, width, channels, imageTransform);
         }
@@ -117,6 +117,20 @@ public class MongoImageRecordReader extends BaseRecordReader {
             this.imageLoader = new NativeImageLoader(height, width, channels, imageTransform);
         }
         this.conf = conf;
+        initialize(split);
+    }
+
+    /**
+     * Called once at initialization.
+     *
+     * @param split the split that defines the range of records to read
+     * @param imageTransform the image transform to use to transform images
+     * while loading them
+     * @throws java.io.IOException
+     */
+    public void initialize(InputSplit split, ImageTransform imageTransform) throws IOException {
+        this.imageLoader = null;
+        this.imageTransform = imageTransform;
         initialize(split);
     }
 
