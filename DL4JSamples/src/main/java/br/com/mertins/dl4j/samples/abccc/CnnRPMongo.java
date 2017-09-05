@@ -17,12 +17,17 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.conf.LearningRatePolicy;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.distribution.Distribution;
+import org.deeplearning4j.nn.conf.distribution.GaussianDistribution;
+import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.LocalResponseNormalization;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -86,7 +91,7 @@ public class CnnRPMongo {
         log.info("Build model....");
         MultiLayerNetwork network;
 
-        network = lenetModel();
+        network = alexnetModel();
 
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));
@@ -134,13 +139,12 @@ public class CnnRPMongo {
         int[] predictedClasses = network.predict(testDataSet.getFeatures());
         String expectedResult = allClassLabels.get(labelIndex);
         String modelPrediction = allClassLabels.get(predictedClasses[0]);
-        log.info("Labels "+allClassLabels.toString());
+        log.info("Labels " + allClassLabels.toString());
         log.info("For a single example that is labeled " + expectedResult + " the model predicted " + modelPrediction);
 
         log.info("Save model....");
         String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
         ModelSerializer.writeModel(network, basePath + "model.bin", true);
-
 
         log.info("****************Example finished********************");
 
@@ -166,7 +170,7 @@ public class CnnRPMongo {
         return new DenseLayer.Builder().name(name).nOut(out).biasInit(bias).dropOut(dropOut).dist(dist).build();
     }
 
-    public MultiLayerNetwork lenetModel() {
+    private MultiLayerNetwork lenetModel() {
         /**
          * Revisde Lenet Model approach developed by ramgo2 achieves slightly
          * above random Reference:
@@ -193,6 +197,62 @@ public class CnnRPMongo {
                         .activation(Activation.SOFTMAX)
                         .build())
                 .backprop(true).pretrain(false)
+                .setInputType(InputType.convolutional(height, width, channels))
+                .build();
+
+        return new MultiLayerNetwork(conf);
+
+    }
+
+    private MultiLayerNetwork alexnetModel() {
+        /**
+         * AlexNet model interpretation based on the original paper ImageNet
+         * Classification with Deep Convolutional Neural Networks and the
+         * imagenetExample code referenced.
+         * http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
+         *
+         */
+
+        double nonZeroBias = 1;
+        double dropOut = 0.5;
+
+        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+                .seed(seed)
+                .weightInit(WeightInit.DISTRIBUTION)
+                .dist(new NormalDistribution(0.0, 0.01))
+                .activation(Activation.RELU)
+                .updater(new Nesterovs(0.9))
+                .iterations(iterations)
+                .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer) // normalize to prevent vanishing or exploding gradients
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .learningRate(1e-2)
+                .biasLearningRate(1e-2 * 2)
+                .learningRateDecayPolicy(LearningRatePolicy.Step)
+                .lrPolicyDecayRate(0.1)
+                .lrPolicySteps(100000)
+                .regularization(true)
+                .l2(5 * 1e-4)
+                .miniBatch(false)
+                .list()
+                .layer(0, convInit("cnn1", channels, 96, new int[]{11, 11}, new int[]{4, 4}, new int[]{3, 3}, 0))
+                .layer(1, new LocalResponseNormalization.Builder().name("lrn1").build())
+                .layer(2, maxPool("maxpool1", new int[]{3, 3}))
+                .layer(3, conv5x5("cnn2", 256, new int[]{1, 1}, new int[]{2, 2}, nonZeroBias))
+                .layer(4, new LocalResponseNormalization.Builder().name("lrn2").build())
+                .layer(5, maxPool("maxpool2", new int[]{3, 3}))
+                .layer(6, conv3x3("cnn3", 384, 0))
+                .layer(7, conv3x3("cnn4", 384, nonZeroBias))
+                .layer(8, conv3x3("cnn5", 256, nonZeroBias))
+                .layer(9, maxPool("maxpool3", new int[]{3, 3}))
+                .layer(10, fullyConnected("ffn1", 4096, nonZeroBias, dropOut, new GaussianDistribution(0, 0.005)))
+                .layer(11, fullyConnected("ffn2", 4096, nonZeroBias, dropOut, new GaussianDistribution(0, 0.005)))
+                .layer(12, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                        .name("output")
+                        .nOut(numLabels)
+                        .activation(Activation.SOFTMAX)
+                        .build())
+                .backprop(true)
+                .pretrain(false)
                 .setInputType(InputType.convolutional(height, width, channels))
                 .build();
 

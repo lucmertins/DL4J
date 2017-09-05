@@ -11493,3 +11493,83 @@ Number of threads used for BLAS: 0
                 
 [1.00,  0.00]
 
+2017-09-05 12:15:16,757 - [INFO] - from br.com.mertins.dl4j.samples.abccc.CnnRPMongo in main
+                
+Load data....
+
+2017-09-05 12:15:19,014 - [INFO] - from org.mongodb.driver.cluster in main
+                
+Cluster created with settings {hosts=[localhost:27017], mode=MULTIPLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+
+2017-09-05 12:15:19,014 - [INFO] - from org.mongodb.driver.cluster in main
+                
+Adding discovered server localhost:27017 to client view of cluster
+
+2017-09-05 12:15:19,466 - [INFO] - from org.mongodb.driver.cluster in main
+                
+No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=MULTIPLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING}]}. Waiting for 30000 ms before timing out
+
+2017-09-05 12:15:19,709 - [INFO] - from org.mongodb.driver.connection in cluster-ClusterId{value='59aebf873dbc0e2edb332a20', description='null'}-localhost:27017
+                
+Opened connection [connectionId{localValue:1, serverValue:22}] to localhost:27017
+
+2017-09-05 12:15:19,713 - [INFO] - from org.mongodb.driver.cluster in cluster-ClusterId{value='59aebf873dbc0e2edb332a20', description='null'}-localhost:27017
+                
+Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[3, 4, 7]}, minWireVersion=0, maxWireVersion=5, maxDocumentSize=16777216, roundTripTimeNanos=1084553}
+
+2017-09-05 12:15:19,715 - [INFO] - from org.mongodb.driver.cluster in cluster-ClusterId{value='59aebf873dbc0e2edb332a20', description='null'}-localhost:27017
+                
+Discovered cluster type of STANDALONE
+
+2017-09-05 12:15:19,722 - [INFO] - from org.mongodb.driver.connection in main
+                
+Opened connection [connectionId{localValue:2, serverValue:23}] to localhost:27017
+
+2017-09-05 12:15:23,065 - [INFO] - from br.com.mertins.dl4j.samples.abccc.CnnRPMongo in main
+                
+Build model....
+
+2017-09-05 12:15:23,100 - [INFO] - from org.nd4j.linalg.factory.Nd4jBackend in main
+                
+Loaded [JCublasBackend] backend
+
+2017-09-05 12:15:26,571 - [INFO] - from org.nd4j.nativeblas.NativeOpsHolder in main
+                
+Number of threads used for NativeOps: 32
+
+2017-09-05 12:15:38,309 - [INFO] - from org.nd4j.linalg.api.ops.executioner.DefaultOpExecutioner in main
+                
+Backend used: [CUDA]; OS: [Linux]
+
+2017-09-05 12:15:38,309 - [INFO] - from org.nd4j.linalg.api.ops.executioner.DefaultOpExecutioner in main
+                
+Cores: [4]; Memory: [3,5GB];
+
+2017-09-05 12:15:38,309 - [INFO] - from org.nd4j.linalg.api.ops.executioner.DefaultOpExecutioner in main
+                
+Blas vendor: [CUBLAS]
+
+2017-09-05 12:15:38,309 - [INFO] - from org.nd4j.linalg.jcublas.ops.executioner.CudaExecutioner in main
+                
+Device name: [GeForce GTX 760]; CC: [3.0]; Total/free memory: [2094923776]
+
+2017-09-05 12:15:42,768 - [INFO] - from org.deeplearning4j.nn.multilayer.MultiLayerNetwork in main
+                
+Starting MultiLayerNetwork with WorkspaceModes set to [training: NONE; inference: SEPARATE]
+
+2017-09-05 12:15:43,693 - [INFO] - from br.com.mertins.dl4j.samples.abccc.CnnRPMongo in main
+                
+Train model....
+
+2017-09-05 12:16:03,892 - [INFO] - from org.nd4j.nativeblas.Nd4jBlas in main
+                
+Number of threads used for BLAS: 0
+
+2017-09-05 12:16:05,589 - [INFO] - from org.deeplearning4j.optimize.listeners.ScoreIterationListener in main
+                
+Score at iteration 0 is 1.4135403992952837
+
+2017-09-05 12:16:14,353 - [INFO] - from org.deeplearning4j.optimize.listeners.ScoreIterationListener in main
+                
+Score at iteration 1 is 0.6632742221052845
+
