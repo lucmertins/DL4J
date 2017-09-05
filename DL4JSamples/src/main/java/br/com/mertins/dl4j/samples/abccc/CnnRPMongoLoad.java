@@ -1,21 +1,21 @@
 package br.com.mertins.dl4j.samples.abccc;
 
-import br.com.mertins.datavec.api.io.labels.MongoPathLabelGenerator;
-import br.com.mertins.datavec.api.records.reader.MongoImageRecordReader;
-import br.com.mertins.datavec.api.split.MongoSplit;
 import br.com.mertins.dl4j.mongo.MongoConnection;
 import br.com.mertins.dl4j.mongo.MongoDaoDL4J;
+import br.com.mertins.dl4j.mongo.MongoElement;
 import static br.com.mertins.dl4j.samples.abccc.CnnRPMongo.log;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import org.datavec.image.recordreader.ImageRecordReader;
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.deeplearning4j.eval.Evaluation;
+import org.bson.types.ObjectId;
+import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.nn.conf.layers.FeedForwardLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 
@@ -34,6 +34,7 @@ public class CnnRPMongoLoad {
         int numLabels = 2;
         int channels = 3;
 
+        List<String> labelList = Arrays.asList("FRONT", "VERSE");
         log.info("Load data....");
         Properties properties = new Properties();
         properties.setProperty("nosqlServer", "localhost");
@@ -44,23 +45,41 @@ public class CnnRPMongoLoad {
         MongoConnection conn = new MongoConnection();
         conn.doConnectionMongo(properties, false);
 
-        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
-        MongoSplit test = new MongoSplit(daoTest, rng);
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
 
         File locationToSave = new File("/home/mertins/Desenvolvimento/Java/UFPel/IA/RedesGeradasDL4J/20170901/model.bin");
-        MultiLayerNetwork network = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
+        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
 
-        MongoPathLabelGenerator labelMaker = new MongoPathLabelGenerator();
-        MongoImageRecordReader recordReader = new MongoImageRecordReader(height, width, channels, labelMaker);
+        
+        
+        NativeImageLoader loader = new NativeImageLoader(height, width, channels);
 
-        log.info("Evaluate model....");
-        recordReader.initialize(test);
-        DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-        scaler.fit(dataIter);
-        dataIter.setPreProcessor(scaler);
-        Evaluation eval = network.evaluate(dataIter);
-        log.info(eval.stats(true));
+        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
+        List<MongoElement> list = daoTest.list();
 
+//        for (MongoElement element : list) {
+        MongoElement element = new MongoElement(new ObjectId("596e0c003dbc0e19bf68ea00"));
+        INDArray image = loader.asMatrix(daoTest.find(element));
+        scaler.transform(image);
+        INDArray output = model.output(image);
+        
+       
+        
+        
+        
+        log.info(String.format("## ObjectId %s    %s", element.getId().toString(), element.getLabel()));
+        log.info("## The Neural Nets Pediction ##");
+        log.info("## list of probabilities per label ##");
+        log.info("## List of Labels in Order## ");
+        // In new versions labels are always in order
+
+        log.info(output.toString());
+
+//        Evaluation eval = new Evaluation(labelList);
+//
+//        eval.eval(, output);
+//        log.info(eval.stats());
+
+//        }
     }
 }

@@ -134,11 +134,13 @@ public class CnnRPMongo {
         int[] predictedClasses = network.predict(testDataSet.getFeatures());
         String expectedResult = allClassLabels.get(labelIndex);
         String modelPrediction = allClassLabels.get(predictedClasses[0]);
-        System.out.print("\nFor a single example that is labeled " + expectedResult + " the model predicted " + modelPrediction + "\n\n");
+        log.info("Labels "+allClassLabels.toString());
+        log.info("For a single example that is labeled " + expectedResult + " the model predicted " + modelPrediction);
 
         log.info("Save model....");
         String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
         ModelSerializer.writeModel(network, basePath + "model.bin", true);
+
 
         log.info("****************Example finished********************");
 
