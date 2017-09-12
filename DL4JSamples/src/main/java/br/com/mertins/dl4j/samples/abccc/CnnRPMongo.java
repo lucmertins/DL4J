@@ -225,8 +225,8 @@ public class CnnRPMongo {
                 .iterations(iterations)
                 .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer) // normalize to prevent vanishing or exploding gradients
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .learningRate(1e-2)
-                .biasLearningRate(1e-2 * 2)
+                .learningRate(1e-4)
+                .biasLearningRate(1e-4 * 2)
                 .learningRateDecayPolicy(LearningRatePolicy.Step)
                 .lrPolicyDecayRate(0.1)
                 .lrPolicySteps(100000)

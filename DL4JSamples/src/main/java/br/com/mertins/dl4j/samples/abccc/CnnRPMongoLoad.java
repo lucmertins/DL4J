@@ -12,7 +12,6 @@ import java.util.Properties;
 import java.util.Random;
 import org.bson.types.ObjectId;
 import org.datavec.image.loader.NativeImageLoader;
-import org.deeplearning4j.nn.conf.layers.FeedForwardLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -55,7 +54,7 @@ public class CnnRPMongoLoad {
         NativeImageLoader loader = new NativeImageLoader(height, width, channels);
 
         MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
-        List<MongoElement> list = daoTest.list();
+//        List<MongoElement> list = daoTest.list();
 
 //        for (MongoElement element : list) {
         MongoElement element = new MongoElement(new ObjectId("596e0c003dbc0e19bf68ea00"));

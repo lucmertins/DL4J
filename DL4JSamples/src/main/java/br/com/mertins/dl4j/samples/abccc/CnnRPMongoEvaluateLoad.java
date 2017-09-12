@@ -43,7 +43,7 @@ public class CnnRPMongoEvaluateLoad {
         MongoConnection conn = new MongoConnection();
         conn.doConnectionMongo(properties, false);
 
-        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
+        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegProvisorioIndividualTest", "side", "RegProvisorioIndividualAdj", "fileIdAdj");
         MongoSplit test = new MongoSplit(daoTest, rng);
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
 
