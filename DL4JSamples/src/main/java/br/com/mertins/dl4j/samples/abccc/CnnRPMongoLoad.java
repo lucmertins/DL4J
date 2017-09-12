@@ -53,11 +53,11 @@ public class CnnRPMongoLoad {
         
         NativeImageLoader loader = new NativeImageLoader(height, width, channels);
 
-        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
+        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegProvisorioIndividualTest", "side", "RegProvisorioIndividualAdj", "fileIdAdj");
 //        List<MongoElement> list = daoTest.list();
 
 //        for (MongoElement element : list) {
-        MongoElement element = new MongoElement(new ObjectId("596e0c003dbc0e19bf68ea00"));
+        MongoElement element = new MongoElement(new ObjectId("59b70ac83dbc0e3f5e8826b0"));
         INDArray image = loader.asMatrix(daoTest.find(element));
         scaler.transform(image);
         INDArray output = model.output(image);
