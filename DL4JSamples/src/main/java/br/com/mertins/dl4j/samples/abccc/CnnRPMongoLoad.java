@@ -5,12 +5,13 @@ import br.com.mertins.dl4j.mongo.MongoDaoDL4J;
 import br.com.mertins.dl4j.mongo.MongoElement;
 import static br.com.mertins.dl4j.samples.abccc.CnnRPMongo.log;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import org.bson.types.ObjectId;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
@@ -41,6 +42,7 @@ public class CnnRPMongoLoad {
         properties.setProperty("nosqlDatabase", "IAABCCC");
         properties.setProperty("nosqlUser", "xxx");
         properties.setProperty("nosqlPasswd", "xxx");
+
         MongoConnection conn = new MongoConnection();
         conn.doConnectionMongo(properties, false);
 
@@ -49,36 +51,42 @@ public class CnnRPMongoLoad {
         File locationToSave = new File("/home/mertins/Desenvolvimento/Java/UFPel/IA/RedesGeradasDL4J/20170901/model.bin");
         MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
 
-        
-        
         NativeImageLoader loader = new NativeImageLoader(height, width, channels);
 
         MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegProvisorioIndividualTest", "side", "RegProvisorioIndividualAdj", "fileIdAdj");
-//        List<MongoElement> list = daoTest.list();
 
-//        for (MongoElement element : list) {
-        MongoElement element = new MongoElement(new ObjectId("59b70ac83dbc0e3f5e8826b0"));
-        INDArray image = loader.asMatrix(daoTest.find(element));
-        scaler.transform(image);
-        INDArray output = model.output(image);
-        
-       
-        
-        
-        
-        log.info(String.format("## ObjectId %s    %s", element.getId().toString(), element.getLabel()));
-        log.info("## The Neural Nets Pediction ##");
-        log.info("## list of probabilities per label ##");
-        log.info("## List of Labels in Order## ");
-        // In new versions labels are always in order
+        String[] labels = {"FRONT", "VERSE"};
 
-        log.info(output.toString());
+        for (MongoElement element : daoTest.list()) {
+            INDArray image = loader.asMatrix(daoTest.find(element));
+            scaler.transform(image);
+            INDArray output = model.output(image);
 
-//        Evaluation eval = new Evaluation(labelList);
-//
-//        eval.eval(, output);
-//        log.info(eval.stats());
+            double value = Double.NEGATIVE_INFINITY;
+            int pos = -1;
+            for (int i = 0; i < output.length(); i++) {
+                if (value < output.getDouble(i)) {
+                    value = output.getDouble(i);
+                    pos = i;
+                }
+            }
 
-//        }
+            if (!element.getLabel().equals(labels[pos])) {
+                log.info(String.format("## ObjectId [%s]   Label  [%s]   Output [%s]   Escolheu [%s]",
+                        element.getId().toString(), element.getLabel(), output.toString(), labels[pos]));
+            }
+            InputStream img = daoTest.find(element);
+            byte[] buffer = new byte[2048];
+            try (FileOutputStream fos = new FileOutputStream(String.format("/home/mertins/temp/imgs/%s_%s_%s.png",
+                    element.getLabel().equals(labels[pos]) ? "OK" : "RUIM",
+                    labels[pos], element.getId().toString()))) {
+                int read = -1;
+                while ((read = img.read(buffer)) > -1) {
+                    fos.write(buffer, 0, read);
+                }
+            }
+
+        }
+
     }
 }
