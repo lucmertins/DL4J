@@ -74,8 +74,8 @@ public class CnnRPMongo {
         MongoConnection conn = new MongoConnection();
         conn.doConnectionMongo(properties, false);
 
-        MongoDaoDL4J daoTrain = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTrain", "side", "RegistroProvisorioAdj", "fileIdAdj");
-        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegistroProvisorioTest", "side", "RegistroProvisorioAdj", "fileIdAdj");
+        MongoDaoDL4J daoTrain = new MongoDaoDL4J(conn.getMongoDatabase(), "RegProvisorioIndividualTrain", "side", "RegProvisorioIndividualAdj", "fileIdAdj");
+        MongoDaoDL4J daoTest = new MongoDaoDL4J(conn.getMongoDatabase(), "RegProvisorioIndividualTest", "side", "RegProvisorioIndividualAdj", "fileIdAdj");
 
         MongoSplit train = new MongoSplit(daoTrain, rng);
         MongoSplit test = new MongoSplit(daoTest, rng);

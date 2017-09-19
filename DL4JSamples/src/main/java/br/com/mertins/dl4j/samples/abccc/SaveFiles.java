@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -43,14 +42,6 @@ public class SaveFiles {
 
             ImageIO.write(outputImage, "png", new File(String.format("/home/mertins/temp/imgs/%s/%s_%s.png", element.getLabel(), element.getLabel(), element.getId().toString())));
 
-//            byte[] buffer = new byte[2048];
-//            try (FileOutputStream fos = new FileOutputStream(String.format("/home/mertins/temp/imgs/%s_%s.png",
-//                    element.getLabel(), element.getId().toString()))) {
-//                int read = -1;
-//                while ((read = img.read(buffer)) > -1) {
-//                    fos.write(buffer, 0, read);
-//                }
-//            }
         }
 
     }
