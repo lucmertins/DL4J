@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
@@ -26,12 +25,8 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 public class CnnRPMongoLoad {
 
     public static void main(String[] args) throws IOException {
-        int seed = 123;
-        Random rng = new Random(seed);
         int height = 100;
         int width = 100;
-        int batchSize = 32;
-        int numLabels = 2;
         int channels = 3;
 
         List<String> labelList = Arrays.asList("FRONT", "VERSE");
